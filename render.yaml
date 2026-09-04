@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: a-share-quant-workstation
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py --host 0.0.0.0 --port 10000 --live
+    healthCheckPath: /api/meta
