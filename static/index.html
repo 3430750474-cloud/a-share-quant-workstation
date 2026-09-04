@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A股短线量化工作站</title>
+  <link rel="stylesheet" href="/static/styles.css?v=7">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">K</span>
+        <div class="brand-copy">
+          <strong>短线量化</strong>
+          <small>A股策略工作台</small>
+        </div>
+      </div>
+      <nav id="mainNav" class="main-nav" aria-label="主导航"></nav>
+      <div class="search-wrap">
+        <svg class="icon search-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.8-3.8"></path>
+        </svg>
+        <input id="globalSearch" autocomplete="off" placeholder="股票代码 / 名称 / 行业">
+        <div id="searchResults" class="search-results hidden"></div>
+      </div>
+      <div class="live-pill" id="livePill">
+        <span class="live-dot"></span>
+        <span id="clockText">--:--</span>
+      </div>
+    </header>
+
+    <main id="mainContent" class="main-content">
+      <section id="view-dashboard" class="view">
+        <div class="section-heading">
+          <div>
+            <h1>市场雷达</h1>
+            <p id="marketSubtitle">全市场扫描与信号推送</p>
+          </div>
+          <div class="heading-actions">
+            <button id="refreshBtn" class="btn btn-ghost" type="button">刷新</button>
+            <span class="source-tag" id="sourceTag">离线演示</span>
+          </div>
+        </div>
+
+        <div class="metric-strip" id="metricStrip"></div>
+
+        <div class="dashboard-grid">
+          <section class="panel signal-panel">
+            <div class="panel-head">
+              <h2>实时信号</h2>
+              <div class="legend-line">
+                <span class="legend"><i class="dot high"></i>高</span>
+                <span class="legend"><i class="dot qualified"></i>合格</span>
+                <span class="legend"><i class="dot poor"></i>差</span>
+              </div>
+            </div>
+            <div id="signalTable" class="table-scroll"></div>
+          </section>
+
+          <section class="panel quote-panel">
+            <div class="panel-head">
+              <h2>行情池 <span class="muted" id="marketCount"></span></h2>
+              <div class="segmented" id="marketTabs" role="tablist">
+                <button class="segment active" data-market="all">全部</button>
+                <button class="segment" data-market="watch">自选</button>
+                <button class="segment" data-market="gainers">涨幅榜</button>
+                <button class="segment" data-market="volume">量比榜</button>
+              </div>
+            </div>
+            <div class="screener-bar" id="screenerBar">
+              <span class="screener-title">条件筛选</span>
+              <label>股价
+                <input id="filterPriceMin" class="input input-sm" type="number" min="0" step="0.01" placeholder="最低">
+                <input id="filterPriceMax" class="input input-sm" type="number" min="0" step="0.01" placeholder="最高">
+              </label>
+              <label>涨跌%
+                <input id="filterPctMin" class="input input-sm" type="number" step="0.1" placeholder="最低">
+                <input id="filterPctMax" class="input input-sm" type="number" step="0.1" placeholder="最高">
+              </label>
+              <label>量比
+                <input id="filterVolMin" class="input input-sm" type="number" min="0" step="0.1" placeholder="≥">
+              </label>
+              <label>换手%
+                <input id="filterTurnMin" class="input input-sm" type="number" min="0" step="0.1" placeholder="≥">
+              </label>
+              <select id="filterSector" class="select select-sm" aria-label="行业">
+                <option value="all">全部行业</option>
+              </select>
+              <select id="filterBoard" class="select select-sm" aria-label="板块">
+                <option value="all">全部板块</option>
+                <option value="主板">主板</option>
+                <option value="双创">双创</option>
+              </select>
+              <select id="filterStrength" class="select select-sm" aria-label="信号强度">
+                <option value="all">强度不限</option>
+                <option value="强">强</option>
+                <option value="中">中</option>
+                <option value="弱">弱</option>
+              </select>
+              <select id="filterQuality" class="select select-sm" aria-label="信号质量">
+                <option value="all">质量不限</option>
+                <option value="高">高</option>
+                <option value="合格">合格</option>
+                <option value="差">差</option>
+              </select>
+              <button id="resetScreenerBtn" class="btn btn-sm" type="button">重置</button>
+            </div>
+            <div id="marketTable" class="table-scroll"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="view-strategies" class="view hidden">
+        <div class="section-heading">
+          <div>
+            <h1>策略工作台</h1>
+            <p>八套短线策略 · 规则 / 信号 / 各自历史胜率</p>
+          </div>
+          <span class="source-tag">强中弱 × 高合格差</span>
+        </div>
+        <div class="panel strategy-price-bar">
+          <span class="screener-title">信号价格筛选</span>
+          <label>股价
+            <input id="strategyPriceMin" class="input input-sm" type="number" min="0" step="0.01" placeholder="最低">
+            <input id="strategyPriceMax" class="input input-sm" type="number" min="0" step="0.01" placeholder="最高">
+          </label>
+          <button id="resetStrategyPriceBtn" class="btn btn-sm" type="button">重置</button>
+          <span class="muted" id="strategyPriceCount"></span>
+        </div>
+        <div class="strategy-layout">
+          <aside class="strategy-side" id="strategyNav"></aside>
+          <div class="strategy-main">
+            <section class="panel" id="strategyRules"></section>
+            <section class="panel">
+              <div class="panel-head">
+                <h2>策略信号</h2>
+                <select id="qualityFilter" class="select" aria-label="质量筛选">
+                  <option value="all">全部质量</option>
+                  <option value="高">高</option>
+                  <option value="合格">合格</option>
+                  <option value="差">差</option>
+                </select>
+              </div>
+              <div id="strategySignals" class="table-scroll"></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-stock" class="view hidden">
+        <div class="detail-top">
+          <button id="backBtn" class="btn btn-ghost" type="button">返回行情</button>
+          <div id="stockSummary" class="stock-summary"></div>
+          <div id="stockActions" class="heading-actions"></div>
+        </div>
+        <div class="detail-grid">
+          <section class="panel chart-panel">
+            <div class="chart-toolbar">
+              <div class="segmented" id="periodTabs">
+                <button class="segment active" data-period="day">日K</button>
+                <button class="segment" data-period="5m">5分</button>
+                <button class="segment" data-period="1m">1分</button>
+              </div>
+              <div class="overlay-group" id="overlayGroup">
+                <button class="overlay active" data-overlay="ma">MA</button>
+                <button class="overlay" data-overlay="boll">BOLL</button>
+                <button class="overlay" data-overlay="macd">MACD</button>
+                <button class="overlay" data-overlay="kdj">KDJ</button>
+                <button class="overlay" data-overlay="rsi">RSI</button>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="klineCanvas"></canvas>
+              <div id="chartTooltip" class="chart-tooltip hidden"></div>
+            </div>
+            <div class="chart-footer">
+              <span id="chartSummary">等待K线数据</span>
+              <span id="chartClock"></span>
+            </div>
+          </section>
+          <aside class="panel stock-side" id="stockSide"></aside>
+        </div>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>当前与历史信号</h2>
+            <span class="muted" id="detailSignalHint"></span>
+          </div>
+          <div id="detailSignals" class="table-scroll"></div>
+        </section>
+      </section>
+
+      <section id="view-backtest" class="view hidden">
+        <div class="section-heading">
+          <div>
+            <h1>回测中心</h1>
+            <p>事件驱动日线回测 · 模拟 T+1、涨跌停与交易成本</p>
+          </div>
+          <span class="source-tag">单仓 10% · 最多 5 仓</span>
+        </div>
+        <div class="backtest-config panel">
+          <label>策略
+            <select id="backtestStrategy" class="select"></select>
+          </label>
+          <label>本金（元）
+            <input id="backtestCapital" class="input" type="number" value="1000000" min="100000" step="100000">
+          </label>
+          <button id="runBacktestBtn" class="btn btn-primary" type="button">运行回测</button>
+        </div>
+        <div id="backtestLoading" class="loading-row hidden">回测预热或运行中，请稍候…</div>
+        <div id="backtestMetrics" class="metric-strip"></div>
+        <div class="backtest-grid">
+          <section class="panel">
+            <div class="panel-head"><h2>资金曲线</h2><span id="btPeriod" class="muted"></span></div>
+            <canvas id="equityCanvas"></canvas>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>最近成交</h2><span class="muted" id="btTradeCount"></span></div>
+            <div id="backtestTrades" class="table-scroll"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="view-paper" class="view hidden">
+        <div class="section-heading">
+          <div>
+            <h1>自选与模拟盘</h1>
+            <p>自选监控 · 模拟持仓 · 成交记录</p>
+          </div>
+          <span class="source-tag" id="paperCashTag"></span>
+        </div>
+        <div class="paper-grid">
+          <section class="panel">
+            <div class="panel-head"><h2>自选股</h2><button id="refreshWatchBtn" class="btn btn-ghost btn-sm">刷新</button></div>
+            <div id="watchTable" class="table-scroll"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>模拟持仓</h2></div>
+            <div id="positionTable" class="table-scroll"></div>
+          </section>
+          <section class="panel wide">
+            <div class="panel-head"><h2>最近委托</h2></div>
+            <div id="orderTable" class="table-scroll"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="toastRegion" class="toast-region"></div>
+  <script src="/static/js/chart.js?v=7"></script>
+  <script src="/static/js/app.js?v=7"></script>
+</body>
+</html>
