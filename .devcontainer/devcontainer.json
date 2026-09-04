@@ -1,0 +1,14 @@
+{
+  "name": "A股短线量化工作站",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "forwardPorts": [8765],
+  "portsAttributes": {
+    "8765": {
+      "label": "A股短线量化工作站",
+      "onAutoForward": "openBrowser",
+      "visibility": "public"
+    }
+  },
+  "postCreateCommand": "pip install -r requirements.txt",
+  "postStartCommand": "bash .devcontainer/start.sh"
+}
